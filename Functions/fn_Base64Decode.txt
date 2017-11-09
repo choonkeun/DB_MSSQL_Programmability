@@ -1,0 +1,27 @@
+
+/*-------------------------------
+Convert from base64 to varchar:
+-------------------------------*/
+ALTER FUNCTION [dbo].[fn_Base64Decode] 
+( 
+	@Input VARCHAR(MAX) 
+)
+RETURNS VARCHAR(MAX)
+BEGIN
+	DECLARE
+		@Decoded VARCHAR(max)    
+	SELECT @Decoded = 
+	CAST(
+		CAST('' AS XML).value('xs:base64Binary(sql:column("bin"))', 'VARBINARY(MAX)') AS VARCHAR(MAX)
+	) 
+	FROM ( SELECT CAST(@Input AS VARCHAR(MAX)) AS bin ) AS bin_sql_server_temp;
+	RETURN @Decoded 
+END
+
+
+select dbo.fn_Base64Decode('SGVsbG8=')      --> 'Hello'
+select dbo.fn_Base64Encode('Hello')
+
+
+
+

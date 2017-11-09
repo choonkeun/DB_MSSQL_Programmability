@@ -1,0 +1,51 @@
+
+/**
+    Multi-statement table function
+    - Functions are limited to input parameters. a function must return a single result(scalar value or table)
+    - Stored procedures can return a single result, multiple results, or no results.
+**/
+CREATE FUNCTION fn_Table_CustomerOrderId
+(
+    @CustomerID  NCHAR(5)
+) 
+RETURNS @returnTable TABLE (
+    CustomerID  VARCHAR(5),     --Return Table column
+    OrderId     Int             --Return Table column
+)
+AS
+BEGIN
+    IF EXISTS (SELECT * FROM Orders WHERE CustomerID = @CustomerID )
+        BEGIN
+            INSERT INTO @returnTable ( CustomerID, OrderId ) 
+            SELECT CustomerID, OrderId  FROM Orders WHERE CustomerID = @CustomerID
+        END
+    ELSE
+        BEGIN
+            INSERT INTO @returnTable ( CustomerID, OrderId ) VALUES ( '0', 0 )
+        END 
+    RETURN   
+END
+
+---
+SELECT * FROM dbo.fn_Table_CustomerOrderId('WOLZA')
+
+CustomerID OrderId
+---------- -----------
+WOLZA      10374
+WOLZA      10611
+WOLZA      10792
+WOLZA      10870
+WOLZA      10906
+WOLZA      10998
+WOLZA      11044
+
+(7 row(s) affected)
+
+SELECT * FROM dbo.fn_Table_CustomerOrderId('WOLZ*')
+
+CustomerID OrderId
+---------- -----------
+0          0
+
+(1 row(s) affected)
+

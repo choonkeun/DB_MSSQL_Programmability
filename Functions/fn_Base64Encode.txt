@@ -1,0 +1,47 @@
+
+/*-------------------------------
+Convert from varchar to base64:
+-------------------------------*/
+ALTER FUNCTION [dbo].[fn_Base64Encode]
+(
+    @Input VARCHAR(MAX)
+)
+RETURNS VARCHAR(MAX)
+BEGIN
+	DECLARE
+		@encoded VARCHAR(max)
+	SELECT @encoded = CAST('' AS XML).value( 'xs:base64Binary(xs:hexBinary(sql:column("bin")))', 'VARCHAR(MAX)' )
+	  FROM ( SELECT CAST(@Input AS VARBINARY(MAX)) AS bin ) AS bin_sql_server_temp;
+	RETURN @encoded
+END
+
+select dbo.fn_Base64Decode('SGVsbG8=')
+select dbo.fn_Base64Encode('Hello')         --> 'SGVsbG8='
+-----
+select DISTINCT CustomerID,
+	dbo.fn_Base64Encode(CustomerID) as Cust64,
+	dbo.fn_Base64Decode(dbo.fn_Base64Encode(CustomerID))  as Cust
+from Northwind.dbo.Orders
+where dbo.fn_Base64Encode(CustomerID) like 'Q%'
+
+CustomerID Cust64       Cust
+---------- ------------ ----------
+ALFKI      QUxGS0k=     ALFKI
+ANATR      QU5BVFI=     ANATR
+ANTON      QU5UT04=     ANTON
+AROUT      QVJPVVQ=     AROUT
+BERGS      QkVSR1M=     BERGS
+BLAUS      QkxBVVM=     BLAUS
+BLONP      QkxPTlA=     BLONP
+BOLID      Qk9MSUQ=     BOLID
+BONAP      Qk9OQVA=     BONAP
+BOTTM      Qk9UVE0=     BOTTM
+BSBEV      QlNCRVY=     BSBEV
+CACTU      Q0FDVFU=     CACTU
+CENTC      Q0VOVEM=     CENTC
+CHOPS      Q0hPUFM=     CHOPS
+COMMI      Q09NTUk=     COMMI
+CONSH      Q09OU0g=     CONSH
+
+(16 row(s) affected)
+
