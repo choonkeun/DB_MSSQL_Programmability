@@ -1,0 +1,44 @@
+select @@servername
+select @@SERVICENAME
+select @@textsize
+select @@version
+select @@spid
+select @@DateFirst
+select @@dbts
+select @@language
+select @@lock_Timeout
+select @@Max_Connections
+select @@MAX_PRECISION
+select @@nestLevel
+select @@Options
+
+----------------------------------------------------------------------------------------------------
+select @@servername     : WIN2012
+----------------------------------------------------------------------------------------------------
+select @@SERVICENAME    : MSSQLSERVER
+-----------
+select @@textsize       : 2147483647
+----------------------------------------------------------------------------------------------------
+select @@version        : Microsoft SQL Server 2012 - 11.0.2100.60 (X64) 
+                          Feb 10 2012 19:39:15 
+                          Copyright (c) Microsoft Corporation
+                          Enterprise Edition (64-bit) on Windows NT 6.2 <X64> (Build 9200: ) (Hypervisor)
+------
+select @@spid           : 57
+----
+select @@DateFirst      : 7
+------------------
+select @@dbts           : 0x0000000000000C1C
+----------------------------------------------------------------------------------------------------
+select @@language       : us_english
+-----------
+select @@lock_Timeout   : -1
+-----------
+select @@Max_Connections: 32767
+----
+select @@MAX_PRECISION  : 38
+-----------
+select @@nestLevel      : 0
+-----------
+select @@Options        : 5496
+----------------------------------------------------------------------------------------------------
