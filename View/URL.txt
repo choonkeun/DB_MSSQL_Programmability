@@ -1,0 +1,4 @@
+
+SQL Server Indexed Views: The Basics:
+https://www.red-gate.com/simple-talk/sql/learn-sql-server/sql-server-indexed-views-the-basics/
+

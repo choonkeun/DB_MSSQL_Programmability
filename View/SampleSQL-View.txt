@@ -1,0 +1,38 @@
+
+CREATE VIEW Sales.vCustomerOrders
+WITH SCHEMABINDING AS
+SELECT  CUST.CustomerID, PER.FirstName, PER.LastName, SOH.SalesOrderID, SOH.OrderDate,
+		SOH.[Status],SOD.ProductID, PROD.Name, SOD.OrderQty
+FROM    Sales.SalesOrderHeader SOH
+		INNER JOIN Sales.SalesOrderDetail SOD  ON SOH.SalesOrderID = SOD.SalesOrderID
+		INNER JOIN Production.Product PROD     ON PROD.ProductID = SOD.ProductID
+		INNER JOIN Sales.Customer CUST         ON SOH.CustomerID = CUST.CustomerID
+		INNER JOIN Person.Person PER           ON PER.BusinessEntityID = CUST.PersonID;
+--ORDER by CUST.CustomerID;
+
+SELECT  CustomerID, FirstName, LastName, SalesOrderID, OrderDate, [Status], ProductID,
+		Name, OrderQty
+FROM    Sales.vCustomerOrders; 
+ORDER by CUST.CustomerID;
+
+---
+CREATE VIEW Sales.vSalesSummaryCustomerProduct
+WITH SCHEMABINDING
+AS
+    SELECT  CUST.CustomerID, SOH.SalesOrderID, SOD.ProductID, SUM(SOD.OrderQty) AS TotalOrderQty,
+            SUM(LineTotal) AS TotalValue, COUNT_BIG(*) AS CountLines
+    FROM    Sales.SalesOrderHeader SOH
+            INNER JOIN Sales.SalesOrderDetail SOD  ON SOH.SalesOrderID = SOD.SalesOrderID
+            INNER JOIN Production.Product PROD     ON PROD.ProductID = SOD.ProductID
+            INNER JOIN Sales.Customer CUST         ON SOH.CustomerID = CUST.CustomerID
+            INNER JOIN Person.Person PER           ON PER.BusinessEntityID = CUST.PersonID
+    GROUP BY CUST.CustomerID ,
+            SOH.SalesOrderID ,
+            SOD.ProductID; 
+GO
+CREATE UNIQUE CLUSTERED INDEX CX_vSalesSummaryCustomerProduct
+  ON Sales.vSalesSummaryCustomerProduct(CustomerID, SalesOrderID, ProductID); 
+GO
+
+SELECT  CustomerID, SalesOrderID, TotalOrderQty, TotalValue
+FROM    Sales.vSalesSummaryCustomerProduct;     
