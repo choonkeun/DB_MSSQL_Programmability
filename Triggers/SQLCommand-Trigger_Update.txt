@@ -1,0 +1,64 @@
+http://csharp-video-tutorials.blogspot.co.uk/search?updated-max=2012-09-19T14:06:00-07:00&max-results=1&reverse-paginate=true
+
+UPDATE Employee 
+   SET Name = 'Tods', Salary = 2000, Gender = 'Female' 
+ WHERE Id = 4
+
+CREATE TRIGGER tr_tblEmployee_ForUpdate
+    ON  Employee
+    FOR UPDATE
+    AS
+BEGIN
+      -- Declare variables to hold old and updated data
+      DECLARE @Id           int
+      DECLARE @OldName      nvarchar(20),   @NewName    nvarchar(20)
+      DECLARE @OldSalary    int,            @NewSalary  int
+      DECLARE @OldGender    nvarchar(20),   @NewGender  nvarchar(20)
+      DECLARE @OldDeptId    int,            @NewDeptId  int
+
+      -- Variable to build the audit string
+      DECLARE @AuditString nvarchar(1000)
+
+      -- Load the updated records into temporary table
+      SELECT *
+        INTO #TempTable
+        FROM INSERTED
+
+      -- Loop thru the records in temp table
+      While(Exists(SELECT Id FROM #TempTable))
+      Begin
+            --Initialize the audit string to empty string
+            Set @AuditString = ''
+
+            -- Select first row data from temp table
+            SELECT Top 1 @Id = Id, @NewName = Name, @NewGender = Gender, @NewSalary = Salary, @NewDeptId = DepartmentId
+              FROM #TempTable
+
+            -- Select the corresponding row from deleted table
+            SELECT @OldName = Name, @OldGender = Gender, @OldSalary = Salary, @OldDeptId = DepartmentId
+              FROM deleted 
+             WHERE Id = @Id
+
+            -- Build the audit string dynamically
+            Set @AuditString = 'Employee with Id = ' + Cast(@Id as nvarchar(4)) + ' changed'
+            if(@OldName <> @NewName)
+                Set @AuditString = @AuditString + ' NAME from ' + @OldName + ' to ' + @NewName
+
+            if(@OldGender <> @NewGender)
+                Set @AuditString = @AuditString + ' GENDER from ' + @OldGender + ' to ' + @NewGender
+
+            if(@OldSalary <> @NewSalary)
+                Set @AuditString = @AuditString + ' SALARY from ' + Cast(@OldSalary as nvarchar(10))+ ' to ' + Cast(@NewSalary as nvarchar(10))
+
+            if(@OldDeptId <> @NewDeptId)
+                Set @AuditString = @AuditString + ' DepartmentId from ' + Cast(@OldDeptId as nvarchar(10))+ ' to ' + Cast(@NewDeptId as nvarchar(10))
+
+            INSERT INTO tblEmployeeAudit values(@AuditString)
+
+            -- Delete the row from temp table, so we can move to the next row
+            DELETE FROM #TempTable WHERE Id = @Id
+      END
+END
+
+
+
