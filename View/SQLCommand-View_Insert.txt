@@ -1,0 +1,82 @@
+http://csharp-video-tutorials.blogspot.co.uk/search?updated-max=2012-09-20T14:42:00-07:00&max-results=1&reverse-paginate=true
+
+----------------------------------------------------------------------------------------------------
+-- CREATE VIEW
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE Employee
+(
+    Id           int Primary Key,
+    Name         nvarchar(30),
+    Gender       nvarchar(10),
+    DepartmentId int
+)
+
+CREATE TABLE Department
+(
+    DeptId      int Primary Key,
+    DeptName    nvarchar(20)
+)
+
+Insert into Department values (1,'IT')
+Insert into Department values (2,'Payroll')
+Insert into Department values (3,'HR')
+Insert into Department values (4,'Admin')
+
+Insert into Employee values (1,'John', 'Male', 3)
+Insert into Employee values (2,'Mike', 'Male', 2)
+Insert into Employee values (3,'Pam', 'Female', 1)
+Insert into Employee values (4,'Todd', 'Male', 4)
+Insert into Employee values (5,'Sara', 'Female', 1)
+Insert into Employee values (6,'Ben', 'Male', 3)
+
+----------------------------------------------------------------------------------------------------
+-- VIEW INSERT --> ERROR
+----------------------------------------------------------------------------------------------------
+
+CREATE VIEW vwEmployeeDetails
+AS
+    SELECT Id, Name, Gender, DeptName
+      FROM Employee 
+      JOIN Department on Employee.DepartmentId = Department.DeptId
+
+
+INSERT INTO vwEmployeeDetails values(7, 'Valarie', 'Female', 'IT')  --> Error발생(Multiple Table을 사용하기 때문)
+
+----------------------------------------------------------------------------------------------------
+--- 문제 해결 방법
+----------------------------------------------------------------------------------------------------
+
+CREATE TRIGGER tr_vwEmployeeDetails_InsteadOfInsert
+    ON vwEmployeeDetails
+    INSTEAD OF INSERT
+    AS
+BEGIN
+    DECLARE @DeptId int
+
+    --Check if there is a valid DepartmentId for the given DepartmentName
+    SELECT @DeptId = DeptId 
+      FROM Department 
+      JOIN INSERTED  ON INSERTED.DeptName = Department.DeptName
+
+    --If DepartmentId is null throw an error and stop processing
+    if(@DeptId is null)
+    BEGIN
+        Raiserror('Invalid Department Name. Statement terminated', 16, 1)
+        return
+    END
+
+    --Finally insert into Employee table
+    Insert into Employee(Id, Name, Gender, DepartmentId)
+    SELECT Id, Name, Gender, @DeptId
+      FROM INSERTED
+END
+
+----------------------------------------------------------------------------------------------------
+--- TEST Insert 문장
+----------------------------------------------------------------------------------------------------
+INSERT INTO vwEmployeeDetails values(7, 'Valarie', 'Female', 'IT')
+
+
+
+
