@@ -1,0 +1,62 @@
+
+Update vWEmployeeDetails    set Name = 'Johny', DeptName = 'IT' where Id = 1
+Update vWEmployeeDetails    set                 DeptName = 'IT' where Id = 1
+Update Department           set DeptName = 'HR'                 where DeptId = 3
+
+
+CREATE TRIGGER tr_vWEmployeeDetails_InsteadOfUpdate
+    ON vWEmployeeDetails
+    INSTEAD OF UPDATE
+    AS
+BEGIN
+    -- if EmployeeId is updated
+    if(Update(Id))
+    BEGIN
+        Raiserror('Id cannot be changed', 16, 1)
+        Return
+    END
+ 
+    -- If DeptName is updated
+    if(Update(DeptName)) 
+    BEGIN
+        Declare @DeptId int
+
+        Select @DeptId = DeptId
+        from Department
+        join inserted       on inserted.DeptName = Department.DeptName
+
+        if(@DeptId is NULL )
+        BEGIN
+            Raiserror('Invalid Department Name', 16, 1)
+            Return
+        END
+
+        Update Employee set DepartmentId = @DeptId
+        from inserted
+        join Employee       on Employee.Id = inserted.id
+    END
+ 
+    -- If gender is updated
+    if(Update(Gender))
+    BEGIN
+        Update Employee set Gender = inserted.Gender
+        from inserted
+        join Employee       on Employee.Id = inserted.id
+    END
+ 
+    -- If Name is updated
+    if(Update(Name))
+    BEGIN
+        Update Employee set Name = inserted.Name
+        from inserted
+        join Employee       on Employee.Id = inserted.id
+    END
+    
+END
+
+Update vWEmployeeDetails    set                                    DeptName = 'IT'  where Id = 1
+Update vWEmployeeDetails    set Name = 'Johny', Gender = 'Female', DeptName = 'IT'  where Id = 1
+
+
+
+
