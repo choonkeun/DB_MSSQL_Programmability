@@ -1,0 +1,55 @@
+    private bool Check_Email_Status(string fileType)
+    {
+        bool isFinished = true;
+
+        SqlConnectionStringBuilder sb = new SqlConnectionStringBuilder();
+        sb.DataSource = SQLServer;
+        sb.UserID = SQLServerUserID;
+        sb.Password = SQLServerPassword;
+        sb.InitialCatalog = SQLServerDB;
+
+        SqlConnection cn = new SqlConnection(sb.ConnectionString);
+
+        try
+        {
+            cn.Open();
+
+            //SqlCommand cmd = new SqlCommand("usp_CheckEmailMobile", cn);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = cn;
+            cmd.CommandText = "dbo.usp_CheckEmailMobile";
+            cmd.CommandType = CommandType.StoredProcedure;
+            
+            cmd.Parameters.Add("@FileType", SqlDbType.SmallInt).Value = Convert.ToInt16(fileType);
+            cmd.Parameters.Add("@Name", SqlDbType.VarChar, 50).Value = txtName.Text;
+            cmd.Parameters.Add("@Result", SqlDbType.Bit).Direction = ParameterDirection.Output;
+
+            DataSet ds = new DataSet();
+            SqlDataAdapter sa = new SqlDataAdapter(cmd);
+
+            sa.Fill(ds);
+
+            isFinished = (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0) ? true : false;
+
+            ds.Dispose();
+            cn.Close();
+            
+            //---Case 2
+            //bool result = false;
+            //cmd.Connection.Open();
+            //cmd.ExecuteNonQuery();
+            //result = Convert.ToBoolean(cmd.Parameters["@Result"].Value);
+            //cn.Close();
+        }
+        catch (Exception ex)
+        {
+            if (cn.State == ConnectionState.Open)
+            {
+                cn.Close();
+            }
+            isFinished = true;
+            //throw;
+        }
+        return isFinished;
+    }
+
